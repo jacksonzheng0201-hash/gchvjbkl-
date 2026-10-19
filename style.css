@@ -1,0 +1,347 @@
+/* Money Pal — kid-friendly budget tracker */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #22a06b;
+  --green-light: #e6f6ee;
+  --red: #e05252;
+  --red-light: #fdecec;
+  --ink: #2d3142;
+  --paper: #fffaf2;
+  --radius: 16px;
+}
+
+body {
+  font-family: "Trebuchet MS", "Comic Sans MS", Verdana, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 2rem 1rem 1.5rem;
+  background: linear-gradient(160deg, #ffd166, #ff9f68);
+}
+
+.hero h1 {
+  font-size: 2.4rem;
+  letter-spacing: 1px;
+}
+
+.tagline {
+  margin: 0.4rem auto 1.2rem;
+  font-size: 1.05rem;
+  max-width: 34rem;
+}
+
+.balance-card {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1rem 2.5rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.balance-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #7a7f92;
+}
+
+.balance-amount {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--green);
+}
+
+.balance-amount.negative { color: var(--red); }
+
+/* Two columns */
+main {
+  max-width: 64rem;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .columns { grid-template-columns: 1fr; }
+}
+
+.column {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  border-top: 8px solid transparent;
+}
+
+.column--green { border-top-color: var(--green); }
+.column--red   { border-top-color: var(--red); }
+
+.column h2 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+.column-sub { color: #7a7f92; font-size: 0.9rem; margin-bottom: 1rem; }
+
+/* Forms */
+.entry-form { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+
+.form-row { display: flex; gap: 0.6rem; }
+
+input {
+  font: inherit;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid #dfe3ee;
+  border-radius: 10px;
+  width: 100%;
+  background: #fbfcff;
+}
+
+input:focus {
+  outline: none;
+  border-color: #ffb703;
+  box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.25);
+}
+
+#deposit-amount, #expense-amount { flex: 1; }
+
+.btn {
+  font: inherit;
+  font-weight: bold;
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(0.96); }
+
+.btn--green { background: var(--green); color: #fff; }
+.btn--red   { background: var(--red);   color: #fff; }
+.btn--ghost { background: transparent; color: #7a7f92; border: 2px solid #dfe3ee; }
+
+/* Totals row */
+.totals {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+}
+
+.count-pill {
+  background: #f0f2fa;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+/* Entry list */
+.entry-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  animation: pop 0.18s ease;
+}
+
+.column--green .entry { background: var(--green-light); }
+.column--red   .entry { background: var(--red-light); }
+
+.entry-info { display: flex; flex-direction: column; min-width: 0; }
+.entry-name { font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-date { font-size: 0.75rem; color: #7a7f92; }
+
+.entry-amount { font-weight: bold; flex-shrink: 0; }
+.column--green .entry-amount { color: var(--green); }
+.column--red   .entry-amount { color: var(--red); }
+
+.entry-delete {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #9aa0b4;
+  padding: 0.2rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.entry-delete:hover { color: var(--red); background: #fff; }
+
+.list-empty {
+  text-align: center;
+  color: #9aa0b4;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+@keyframes pop {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Hint & footer */
+.empty-hint {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #7a7f92;
+}
+
+footer { text-align: center; margin-top: 1.5rem; }
+
+/* ===== Money Tree ===== */
+.tree-section {
+  background: #fff;
+  border-radius: var(--radius);
+  border-top: 8px solid #7bc96f;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.tree-section h2 { font-size: 1.4rem; }
+.tree-sub { color: #7a7f92; font-size: 0.95rem; margin: 0.4rem 0 1rem; }
+
+.tree-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+@media (max-width: 720px) {
+  .tree-layout { grid-template-columns: 1fr; }
+}
+
+/* Sky scene */
+.tree-scene {
+  position: relative;
+  background: linear-gradient(#bdeafc 0%, #d8f3ff 65%, #eafbe7 100%);
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sun {
+  position: absolute;
+  top: 14px; right: 18px;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe066 55%, #ffb703 100%);
+  box-shadow: 0 0 26px rgba(255, 200, 60, 0.8);
+  animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+
+.cloud {
+  position: absolute;
+  background: #fff;
+  border-radius: 999px;
+  opacity: 0.9;
+}
+
+.cloud--1 { width: 70px; height: 22px; top: 26px; left: 12%; animation: drift 14s linear infinite alternate; }
+.cloud--2 { width: 50px; height: 17px; top: 58px; left: 45%; animation: drift 18s linear infinite alternate-reverse; }
+
+@keyframes drift {
+  from { transform: translateX(-10px); }
+  to   { transform: translateX(24px); }
+}
+
+.ground {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 26px;
+  background: linear-gradient(#8fd67a, #6cbf5a);
+}
+
+#tree-svg {
+  position: relative;
+  z-index: 1;
+  width: 70%;
+  max-width: 230px;
+  height: 230px;
+  margin-bottom: 10px;
+}
+
+#tree-grow {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.8s ease;
+}
+
+/* Tree info panel */
+.tree-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.5rem;
+  text-align: left;
+}
+
+.energy-big {
+  font-size: 2.1rem;
+  font-weight: bold;
+  color: #2f9e44;
+}
+
+.energy-big small {
+  font-size: 0.95rem;
+  font-weight: normal;
+  color: #7a7f92;
+}
+
+.stage-name { font-size: 1.05rem; }
+
+.checkpoint-label { font-size: 0.95rem; color: #7a7f92; }
+
+.progress-bar {
+  height: 18px;
+  background: #eef1f8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #8fd67a, #2f9e44);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.tree-message {
+  font-size: 1rem;
+  background: var(--green-light);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+}
+

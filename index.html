@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Pal — Track Your Budget</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <h1>🐷 Money Pal</h1>
+    <p class="tagline">See where your money goes — deposits on the left, spending on the right!</p>
+    <div class="balance-card">
+      <span class="balance-label">Money you have left</span>
+      <span id="balance" class="balance-amount">$0.00</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Money tree -->
+    <section class="tree-section">
+      <h2>🌳 Your Money Tree</h2>
+      <p class="tree-sub">Every $1 you deposit gives your tree <strong>1g of energy</strong>. Save more to reach the next checkpoint and watch it grow!</p>
+
+      <div class="tree-layout">
+        <div class="tree-scene">
+          <div class="sun"></div>
+          <div class="cloud cloud--1"></div>
+          <div class="cloud cloud--2"></div>
+          <svg id="tree-svg" viewBox="0 0 200 230" aria-label="Your money tree">
+            <g id="tree-grow"></g>
+          </svg>
+          <div class="ground"></div>
+        </div>
+
+        <div class="tree-info">
+          <div class="energy-big"><span id="energy-grams">0</span>g <small>of tree energy</small></div>
+          <p class="stage-name">Stage: <strong id="stage-name">Tiny Seed</strong></p>
+          <div class="checkpoint-label">Next checkpoint: <strong id="next-checkpoint"></strong></div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <p id="tree-message" class="tree-message"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="columns">
+      <!-- Deposit column -->
+      <div class="column column--green">
+        <h2>💰 Deposits</h2>
+        <p class="column-sub">Money that comes in</p>
+
+        <form id="deposit-form" class="entry-form" autocomplete="off">
+          <input type="text" id="deposit-name" placeholder="What was it for? (e.g. birthday money)" maxlength="40" required>
+          <div class="form-row">
+            <input type="number" id="deposit-amount" placeholder="Amount" min="0.01" step="0.01" required>
+            <button type="submit" class="btn btn--green">+ Add</button>
+          </div>
+        </form>
+
+        <div class="totals">
+          <span>Total in: <strong id="deposit-total">$0.00</strong></span>
+          <span class="count-pill"><span id="deposit-count">0</span> items</span>
+        </div>
+
+        <ul id="deposit-list" class="entry-list" aria-label="Deposit list"></ul>
+      </div>
+
+      <!-- Spent column -->
+      <div class="column column--red">
+        <h2>🛍️ Spent</h2>
+        <p class="column-sub">Money that goes out</p>
+
+        <form id="expense-form" class="entry-form" autocomplete="off">
+          <input type="text" id="expense-name" placeholder="What did you buy? (e.g. candy)" maxlength="40" required>
+          <div class="form-row">
+            <input type="number" id="expense-amount" placeholder="Amount" min="0.01" step="0.01" required>
+            <button type="submit" class="btn btn--red">+ Add</button>
+          </div>
+        </form>
+
+        <div class="totals">
+          <span>Total out: <strong id="expense-total">$0.00</strong></span>
+          <span class="count-pill"><span id="expense-count">0</span> items</span>
+        </div>
+
+        <ul id="expense-list" class="entry-list" aria-label="Spent list"></ul>
+      </div>
+    </section>
+
+    <p id="empty-hint" class="empty-hint">Tip: add some money you earned or were given, then add the things you bought. Your piggy bank balance updates automatically! 🎉</p>
+  </main>
+
+  <footer>
+    <button id="clear-all" class="btn btn--ghost" hidden>Clear everything</button>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
