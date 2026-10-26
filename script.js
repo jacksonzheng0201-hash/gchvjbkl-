@@ -4,9 +4,12 @@
   'use strict';
 
   var STORAGE_KEY = 'moneypal.entries.v1';
+  var GOAL_KEY = 'moneypal.goal.v1';
 
   // state: { deposits: [{id,name,amount,date}], expenses: [...] }
   var state = load();
+  // goal: { name, amount, deadline (YYYY-MM-DD) } or null
+  var goal = loadGoal();
 
   function load() {
     try {
@@ -21,9 +24,21 @@
     return { deposits: [], expenses: [] };
   }
 
+  function loadGoal() {
+    try {
+      var raw = localStorage.getItem(GOAL_KEY);
+      if (raw) {
+        var g = JSON.parse(raw);
+        if (g && typeof g.name === 'string' && g.amount > 0 && g.deadline) return g;
+      }
+    } catch (e) { /* start without a goal */ }
+    return null;
+  }
+
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (goal) localStorage.setItem(GOAL_KEY, JSON.stringify(goal));
     } catch (e) { /* storage full or blocked; site still works in memory */ }
   }
 
@@ -101,22 +116,43 @@
   }
 
   // ===== Money Tree =====
-  // 1 dollar deposited = 1g of tree energy. Tree only grows (spending never shrinks it).
+  // 1 dollar deposited = 1g of energy. Checkpoints are % of the goal amount, so the
+  // tree always finishes growing exactly when the goal is reached.
   var TREE_STAGES = [
-    { g: 0,   name: 'Tiny Seed',         msg: 'Plant your first dollar to wake up your seed!' },
-    { g: 10,  name: 'Little Sprout',     msg: 'Woohoo! Your sprout popped out of the soil!' },
-    { g: 25,  name: 'Small Sapling',     msg: 'Great job! Your sapling is getting taller!' },
-    { g: 50,  name: 'Strong Young Tree', msg: 'Amazing! Look at those leafy branches!' },
-    { g: 100, name: 'Big Happy Tree',    msg: 'WOW! Your tree is huge — you are a saving champion!' },
-    { g: 200, name: 'Magic Fruit Tree',  msg: 'Magical! Your tree grew yummy fruit! ⭐' }
+    { pct: 0,    name: 'Tiny Seed',         msg: 'Plant your first dollar to wake up your seed!' },
+    { pct: 0.10, name: 'Little Sprout',     msg: 'Woohoo! Your sprout popped out of the soil!' },
+    { pct: 0.25, name: 'Small Sapling',     msg: 'Great job! Your sapling is getting taller!' },
+    { pct: 0.50, name: 'Strong Young Tree', msg: 'Halfway there! Look at those leafy branches!' },
+    { pct: 0.75, name: 'Big Happy Tree',    msg: 'So close! Your tree is almost fully grown!' },
+    { pct: 1.00, name: 'Goal Tree',         msg: 'YOU DID IT! Your tree is ready — go get your goal! 🎉' }
   ];
+
+  function stageGrams(stage) {
+    return Math.ceil(stage.pct * goal.amount);
+  }
 
   function treeStageIndex(energy) {
     var idx = 0;
     for (var i = 0; i < TREE_STAGES.length; i++) {
-      if (energy >= TREE_STAGES[i].g) idx = i;
+      if (energy >= stageGrams(TREE_STAGES[i])) idx = i;
     }
     return idx;
+  }
+
+  function escapeXml(str) {
+    return str.replace(/[<>&"']/g, function (c) {
+      return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function goalSign() {
+    var label = escapeXml(goal.name);
+    var fontSize = label.length > 14 ? 8 : 10;
+    return '<g class="goal-sign">' +
+      '<rect x="146" y="196" width="4" height="24" fill="#8b5a2b"/>' +
+      '<rect x="118" y="178" width="60" height="22" rx="4" fill="#ffe7a8" stroke="#c9963a" stroke-width="2"/>' +
+      '<text x="148" y="193" text-anchor="middle" font-size="' + fontSize + '" font-weight="bold" fill="#5b3a1a" font-family="Trebuchet MS, Verdana, sans-serif">' + label + '</text>' +
+      '</g>';
   }
 
   function treeShape(stage) {
@@ -147,9 +183,48 @@
         for (var f = 0; f < fruits.length; f++) {
           s += '<circle cx="' + (100 + fruits[f][0]) + '" cy="' + (canopyY + fruits[f][1]) + '" r="5.5" fill="#e05252" stroke="#b91c1c" stroke-width="1"/>';
         }
+        s += '<text x="100" y="' + (canopyY - canopyR - 6) + '" text-anchor="middle" font-size="16">⭐</text>';
       }
     }
     return s;
+  }
+
+  function daysUntil(dateStr) {
+    var parts = dateStr.split('-');
+    var target = new Date(parts[0], parts[1] - 1, parts[2]);
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+  }
+
+  function renderGoalInfo(energy) {
+    $('goal-title').textContent = goal.name;
+
+    var pct = Math.min(100, Math.round((energy / goal.amount) * 100));
+    var remaining = Math.max(0, goal.amount - energy);
+    $('goal-progress-text').textContent = remaining > 0
+      ? money(energy) + ' saved of ' + money(goal.amount) + ' (' + pct + '%) — ' + money(remaining) + ' to go!'
+      : money(energy) + ' saved — goal of ' + money(goal.amount) + ' reached! 🎉';
+
+    var days = daysUntil(goal.deadline);
+    var dl = $('goal-deadline-text');
+    dl.className = 'goal-deadline';
+    var pretty = new Date(goal.deadline + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    if (remaining <= 0) {
+      dl.textContent = '📅 Deadline was ' + pretty + ' — you made it!';
+    } else if (days > 1) {
+      dl.textContent = '📅 ' + days + ' days left (by ' + pretty + ')';
+      if (days <= 7) dl.classList.add('soon');
+    } else if (days === 1) {
+      dl.textContent = '📅 Tomorrow is the deadline (' + pretty + ')!';
+      dl.classList.add('soon');
+    } else if (days === 0) {
+      dl.textContent = '📅 Today is the deadline!';
+      dl.classList.add('soon');
+    } else {
+      dl.textContent = '📅 Deadline passed ' + (-days) + ' day' + (days === -1 ? '' : 's') + ' ago — keep going, you can still do it!';
+      dl.classList.add('late');
+    }
   }
 
   function renderTree(energy) {
@@ -158,10 +233,11 @@
     var next = TREE_STAGES[idx + 1] || null;
 
     var grow = $('tree-grow');
-    grow.innerHTML = treeShape(idx);
+    grow.innerHTML = treeShape(idx) + goalSign();
 
-    // Continuous growth: base scale per stage, creeping up within the stage
-    var progress = next ? (energy - stage.g) / (next.g - stage.g) : 1;
+    var stageG = stageGrams(stage);
+    var nextG = next ? stageGrams(next) : stageG;
+    var progress = next && nextG > stageG ? (energy - stageG) / (nextG - stageG) : 1;
     var scale = Math.min(1.1, 0.5 + (idx + progress) * 0.12);
     grow.style.transform = 'scale(' + scale.toFixed(3) + ')';
 
@@ -170,15 +246,23 @@
     $('tree-message').textContent = stage.msg;
 
     if (next) {
-      $('next-checkpoint').textContent = next.name + ' at ' + next.g + 'g (' + (next.g - energy) + 'g to go)';
+      $('next-checkpoint').textContent = next.name + ' at ' + nextG + 'g (' + (nextG - energy) + 'g to go)';
       $('progress-fill').style.width = Math.round(progress * 100) + '%';
     } else {
-      $('next-checkpoint').textContent = 'MAX LEVEL — you grew the Magic Fruit Tree!';
+      $('next-checkpoint').textContent = 'GOAL REACHED — your ' + goal.name + ' tree is fully grown!';
       $('progress-fill').style.width = '100%';
     }
+
+    renderGoalInfo(energy);
   }
 
   function render() {
+    if (!goal) {
+      showGoalOverlay();
+      return;
+    }
+    $('goal-overlay').hidden = true;
+
     var depTotal = sum(state.deposits);
     var expTotal = sum(state.expenses);
     var balance = depTotal - expTotal;
@@ -220,9 +304,44 @@
   wireForm('deposit-form', 'deposit-name', 'deposit-amount', 'deposits');
   wireForm('expense-form', 'expense-name', 'expense-amount', 'expenses');
 
+  // ===== Goal setup =====
+  function todayStr() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+
+  function showGoalOverlay() {
+    var deadlineInput = $('goal-deadline');
+    deadlineInput.min = todayStr();
+    if (goal) {
+      $('goal-name').value = goal.name;
+      $('goal-amount').value = goal.amount;
+      deadlineInput.value = goal.deadline;
+    }
+    $('goal-overlay').hidden = false;
+    $('goal-name').focus();
+  }
+
+  $('goal-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var name = $('goal-name').value.trim();
+    var amount = parseFloat($('goal-amount').value);
+    var deadline = $('goal-deadline').value;
+    if (!name || isNaN(amount) || amount <= 0 || !deadline) return;
+    goal = { name: name, amount: Math.round(amount * 100) / 100, deadline: deadline };
+    save();
+    render();
+  });
+
+  $('edit-goal').addEventListener('click', showGoalOverlay);
+
   $('clear-all').addEventListener('click', function () {
-    if (confirm('Clear all deposits and spending? This cannot be undone.')) {
+    if (confirm('Clear all deposits, spending and your goal? This cannot be undone.')) {
       state = { deposits: [], expenses: [] };
+      goal = null;
+      try { localStorage.removeItem(GOAL_KEY); } catch (e) { /* ignore */ }
       save();
       render();
     }

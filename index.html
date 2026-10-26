@@ -20,7 +20,7 @@
     <!-- Money tree -->
     <section class="tree-section">
       <h2>🌳 Your Money Tree</h2>
-      <p class="tree-sub">Every $1 you deposit gives your tree <strong>1g of energy</strong>. Save more to reach the next checkpoint and watch it grow!</p>
+      <p class="tree-sub">Every $1 you deposit gives your tree <strong>1g of energy</strong>. Watch it grow as you get closer to your goal!</p>
 
       <div class="tree-layout">
         <div class="tree-scene">
@@ -34,6 +34,9 @@
         </div>
 
         <div class="tree-info">
+          <p class="goal-line">🎯 Saving for: <strong id="goal-title">—</strong> <button id="edit-goal" type="button" class="btn btn--ghost btn--small">Change goal</button></p>
+          <p class="goal-progress-line" id="goal-progress-text"></p>
+          <p class="goal-deadline" id="goal-deadline-text"></p>
           <div class="energy-big"><span id="energy-grams">0</span>g <small>of tree energy</small></div>
           <p class="stage-name">Stage: <strong id="stage-name">Tiny Seed</strong></p>
           <div class="checkpoint-label">Next checkpoint: <strong id="next-checkpoint"></strong></div>
@@ -93,6 +96,25 @@
   <footer>
     <button id="clear-all" class="btn btn--ghost" hidden>Clear everything</button>
   </footer>
+
+  <div id="goal-overlay" class="goal-overlay" hidden>
+    <div class="goal-card">
+      <h2>🌱 What are you saving for?</h2>
+      <p>Tell us your goal and your money tree will grow into it!</p>
+      <form id="goal-form" autocomplete="off">
+        <label>My goal
+          <input type="text" id="goal-name" placeholder="e.g. New skateboard" maxlength="24" required>
+        </label>
+        <label>Goal amount ($)
+          <input type="number" id="goal-amount" placeholder="100" min="1" step="0.01" required>
+        </label>
+        <label>By when? (deadline)
+          <input type="date" id="goal-deadline" required>
+        </label>
+        <button type="submit" class="btn btn--green">Plant my tree! 🌳</button>
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
